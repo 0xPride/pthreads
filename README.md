@@ -41,4 +41,13 @@ int pthread_create(pthread_t *thread, const pthread_attr_t *attr,
 When a program is started the resulting process consists of a single thread called the initial or main thread,
 the pthread_function create new thread. The new thread begin execution by calling the function identified by start
 with the argument arg ( start(arg) ). the thread that calls pthread_create continue execution.
-The arg is declared as void * meaning that we can pass a pointer to any type of object to the start function.
+- The *arg* is declared as void * meaning that we can pass a pointer to any type of object to the start function.
+and the same implies for the return value.
+- The *thread* argument point to a buffer of type *pthread_t* into which the unique identifier for this thread is copied
+before *pthread_create* is returned. this identifier can be used later to refer to that thread.
+- The *attr* argument is pointer to *pthread_attr_t* object that specifies various attributes for the new thread
+if *attr* is *NULL* then the thread is created with various default attributes.
+
+After the call to *pthread_create* a program has no guarantees about which thread will be next scheduled by the 
+[task scheduler](https://en.wikipedia.org/wiki/Scheduling_(computing)#Process_scheduler). If we want need to enforce
+a particular order of execution we must use one of the synchronization techniques.
