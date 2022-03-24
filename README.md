@@ -241,3 +241,24 @@ except that the caller can specify an additional argument, abstime, that places 
 on the time that the thread will sleep while waiting to acquire the mutex. If the time
 interval specified by its abstime argument expires without the caller becoming the
 owner of the mutex, *pthread_mutex_timedlock()* returns the error *ETIMEDOUT*
+
+## Mutex Deadlocks
+Sometimes, a thread needs to simultaneously access two or more different shared resources, each of which is governed by a separate mutex.
+When more than one thread is locking the same set of mutexes, deadlock situations can arise
+![image](./img/A deadlock when two threads lock two mutexes.png)
+
+- The simplest way to avoid such deadlocks is to define a mutex hierarchy. When threads can lock the same set of mutexes,
+they should always lock them in the same order
+- An alternative strategy that is less frequently used is “try, and then back off.” In this strategy, a thread locks the first mutex
+using *pthread_mutex_lock()*, and then locks the remaining mutexes using *pthread_mutex_trylock()*.
+If any of the *pthread_mutex_trylock()* calls fails (with EBUSY), then the thread releases all mutexes
+
+## Dynamically Initialized a Mutex
+
+```c
+#include <pthread.h>
+int pthread_mutex_init(pthread_mutex_t *mutex, const pthread_mutexattr_t *attr); // Returns 0 on success, or a positive error number on error
+```
+The mutex argument identifies the mutex to be initialized. The attr argument is a pointer to a *pthread_mutexattr_t* object that has previously
+been initialized to define the attributes for the mutex.
+When an automatically or dynamically allocated mutex is no longer required, it should be destroyed using *pthread_mutex_destroy()*.
