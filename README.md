@@ -75,7 +75,7 @@ of *pthread_create()* and a thread can obtain its own id using *pthread_elf()*.
 
 ```c
 #include <pthread.h>
-pthread_t pthread_self(void);
+pthread_t pthread_self(void); // Returns the thread ID of the calling thread
 ```
 Thread IDs are useful withing the following reasons:
 
@@ -85,7 +85,7 @@ Thread IDs are useful withing the following reasons:
 The *pthread_equal()* function allows us to check whether tow thread IDs are the same.
 ```c
 #include <pthread.h>
-int pthread_equal(pthread_t t1, pthread_t t2);
+int pthread_equal(pthread_t t1, pthread_t t2); // Returns nonzero value if t1 and t2 are equal, otherwise 0
 ```
 
 ## Joining with a terminated thread
@@ -94,7 +94,7 @@ The *pthread_join()* function waits for the thread identified by thread to termi
 is already terminated the function return immediately. The operation is termed joining
 ```c
 #include <pthread.h>
-int pthread_join(pthread_t thread, void **retval);
+int pthread_join(pthread_t thread, void **retval); // Returns 0 on success, or a positive error number on error
 ```
 
 Calling *pthread_join()* for a thread ID that has been already join can lead to undefined behavior. It
@@ -102,3 +102,69 @@ might instead joined a thread created later that happens to have the same ID. If
 then we must join with it using *pthread_join()*. If we fail to do this then when the thread terminates
 it produced the thread equivalent of a zombie process.
 The task of *pthread_join()* is similar to that performed by *waitpid()* for precesses.
+
+```c
+#include <pthread.h>
+#include <string.h>
+#include <stdio.h>
+#include <stdlib.h>
+
+static  void *threadFunc(void *arg) {
+	char *s = (char *)arg;
+
+	printf("%s\n", s);
+
+	return (void *)strlen(s);
+}
+
+int main() {
+	pthread_t t1;
+	void *res;
+	int s;
+
+	res = 0;
+	s = pthread_create(&t1, NULL, threadFunc, "Hello World");
+	printf("thread returned %ld\n", (long)res);
+	exit(EXIT_SUCCESS);
+}
+```
+
+When this code is run nothing happens because main function exit before the created thread returns
+
+```c
+#include <pthread.h>
+#include <string.h>
+#include <stdio.h>
+#include <stdlib.h>
+
+static  void *threadFunc(void *arg) {
+	char *s = (char *)arg;
+
+	printf("%s\n", s);
+
+	return (void *)strlen(s);
+}
+
+int main() {
+	pthread_t t1;
+	void *res;
+	int s;
+
+	res = 0;
+	s = pthread_create(&t1, NULL, threadFunc, "Hello World");
+	s = pthread_join(t1, &res);
+	printf("thread returned %ld\n", (long)res);
+	exit(EXIT_SUCCESS);
+}
+```
+
+## Detaching a Thread
+
+A thread is joinable, meaning that another thread can obtain its return status using *pthread_join()*. But sometimes we don't care about that
+value and we just want the system to clean up the remove the thread when it terminate. In this case we can make a thread *detached* by making
+a call to *pthread_detach()*.
+
+```c
+#include <pthread.h>
+int pthread_detach(pthread_t thread); // return 0 on success, or positive error number on error
+```
