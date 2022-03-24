@@ -158,6 +158,8 @@ int main() {
 }
 ```
 
+When this code is run it behave as expected printing *Hello World* in the created thread and then printing the return status of the thread
+
 ## Detaching a Thread
 
 A thread is joinable, meaning that another thread can obtain its return status using *pthread_join()*. But sometimes we don't care about that
@@ -167,4 +169,21 @@ a call to *pthread_detach()*.
 ```c
 #include <pthread.h>
 int pthread_detach(pthread_t thread); // return 0 on success, or positive error number on error
+```
+
+## Thread Attributes
+
+*pthread_attr_t* can be used to specify the attributes used in the creation of a new thread, These attributes include information
+such as the location and size of the thread stack, the thread scheduling policy and priority ...
+
+Example:
+```c
+pthread_t thr;
+pthread_attr_t attr;
+int s;
+
+s = pthread_attr_init(&attr); // Assigns default values 
+s = pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
+s = pthread_create(&thr, &attr, threadFunc, (void *) 1);
+s = pthread_attr_destroy(&attr); // No longer needed
 ```
