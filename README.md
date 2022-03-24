@@ -187,3 +187,57 @@ s = pthread_attr_setdetachstate(&attr, PTHREAD_CREATE_DETACHED);
 s = pthread_create(&thr, &attr, threadFunc, (void *) 1);
 s = pthread_attr_destroy(&attr); // No longer needed
 ```
+
+# Thread Synchronization
+
+## Mutexes
+
+One of the principal advantages of threads is that they can share information via global variables. However, this easy sharing
+comes at a cost: we must take care that multiple threads do not attempt to modify the same variable at the same time, or
+that one thread doesn’t try to read the value of a variable while another thread is modifying it.
+To avoid the problems that can occur when threads try to update a shared variable we must use a *mutex* to ensure that only one thread
+at a time can access the variable. A mutex has tow states *locked* and *unlocked*. At any moment at most one thread may hold the lock on
+a mutex. Attempting to lock a mutex that is already locker either blocks or fail with an error.
+When a thread locks a mutex it becomes the owner of that mutex. Only the mutex owner can unlock the mutex, accessing resource must use
+the following protocol:
+- lock them mutex for the shared resource
+- access the shared resource
+- unlock the shared mutex
+
+![image](./img/Using a mutex to protect a critical section.png)
+
+## Statically Allocated Mutexes
+
+A mutex can either be allocated as a static variable as a static variable or be created dynamically at run time, A mutex is variable
+of type *pthread_mutex_t* and before we use it a mutex must always be initialized.f or a statically allocated mutex, we can do  this
+by assigning it he value *PTREAD_MUTEX_INITIALIZER* as the following: 
+```c
+pthread_mutex_t mtx = PTHREAD_MUTEX_INITIALIZER;
+```
+
+## Locking & Unlocking Mutexes
+
+After initialization, a mutex is unlocked. To lock and unlock a mutex, we use the pthread_mutex_lock() and pthread_mutex_unlock() functions
+```c
+#include <pthread.h>
+
+int pthread_mutex_lock(pthread_mutex_t *mutex); // return 0 on success, or possitive error number on error
+int pthread_mutex_unlock(pthread_mutex_t *mutex); // return 0 on success, or possitive error number on error
+```
+
+To lock a mutex, we specify the mutex in a call to pthread_mutex_lock(). If the mutex is currently unlocked, this call locks the mutex
+and returns immediately. If the mutex is currently locked by another thread, then pthread_mutex_lock() blocks until the mutex is unlocked,
+at which point it locks the mutex and returns.
+If the calling thread itself has already locked the mutex given to
+pthread_mutex_lock(), then, for the default type of mutex, one of two implementationdefined possibilities may result: the thread deadlocks,
+blocked trying to lock a mutex that it already owns, or the call fails, returning the error EDEADLK. On Linux, the thread deadlocks by default
+
+### *pthread_mutex_trylock()* and *pthread_mutex_timedlock()*
+- The pthread_mutex_trylock() function is the same as pthread_mutex_lock(), except
+that if the mutex is currently locked, pthread_mutex_trylock() fails, returning the
+error EBUSY
+- The *pthread_mutex_timedlock()* function is the same as *pthread_mutex_lock()*,
+except that the caller can specify an additional argument, abstime, that places a limit
+on the time that the thread will sleep while waiting to acquire the mutex. If the time
+interval specified by its abstime argument expires without the caller becoming the
+owner of the mutex, *pthread_mutex_timedlock()* returns the error *ETIMEDOUT*
