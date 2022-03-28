@@ -245,6 +245,7 @@ owner of the mutex, *pthread_mutex_timedlock()* returns the error *ETIMEDOUT*
 ## Mutex Deadlocks
 Sometimes, a thread needs to simultaneously access two or more different shared resources, each of which is governed by a separate mutex.
 When more than one thread is locking the same set of mutexes, deadlock situations can arise
+
 ![image](./img/using-a-mutex-to-protect-a-critical-section.png)
 
 - The simplest way to avoid such deadlocks is to define a mutex hierarchy. When threads can lock the same set of mutexes,
