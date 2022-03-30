@@ -263,3 +263,39 @@ int pthread_mutex_init(pthread_mutex_t *mutex, const pthread_mutexattr_t *attr);
 The mutex argument identifies the mutex to be initialized. The attr argument is a pointer to a *pthread_mutexattr_t* object that has previously
 been initialized to define the attributes for the mutex.
 When an automatically or dynamically allocated mutex is no longer required, it should be destroyed using *pthread_mutex_destroy()*.
+
+## Signaling Changes Of State: Condition Variables
+
+A mutex prevents multiple threads from accessing a shared variable at the same time. A Condition variable allows one thread to
+inform other threads about changes in the state of a shared variable and allows the other threads to wait for such notification
+
+### Statically Allocated Condition Variable
+
+```c
+pthread_cond_t consd = PTHREAD_COND_INITIALIZER
+```
+
+### Signaling And Waiting On Condition Variable
+
+The principal condition variable operation are *signal* and *wait*. The signal operation is notification to one or more waiting threads
+that is a shared variable's state has change. The wait operation is the means of blocking until such a notification is received.
+
+```c
+#include <pthread.h>
+
+int pthread_cond_signal(pthread_cond_t *cond); // signal the conditon variable
+int pthread_cond_broadcast(pthread_cond_t *cond); // signal the condition variable
+int pthread_cond_wait(pthread_cond_t *cond, pthread_mutex_t *mutex); // block thread until condition variable is signaled
+```
+
+The difference between pthread_cond_signal() and pthread_cond_broadcast() lies in what happens if multiple threads are blocked
+in pthread_cond_wait(). With pthread_cond_signal(), we are simply guaranteed that at least one of the blocked threads is woken up;
+with pthread_cond_broadcast(), all blocked threads are woken up.
+
+### Dynamically Allocated Condition Variables
+
+```c
+#include <pthread.h>
+int pthread_cond_init(pthread_cond_t *cond, const pthread_condattr_t *attr); // Returns 0 on success, or a positive error number on error
+int pthread_cond_destroy(pthread_cond_t *cond); // Returns 0 on success, or a positive error number on error
+```
